@@ -41,19 +41,20 @@ class AnonymizeCommand extends \N98\Magento\Command\AbstractMagentoCommand
         $salt = uniqid('',true);
         foreach ($tables as $table => $emailColumn) {
             $output->writeln("<info>Anonymizing $table</info>");
-            $this->_anonymizeTable($table, $emailColumn,$salt);
+            $this->_anonymizeTable($table, $emailColumn, $salt);
         }
     }
 
-    protected function _anonymizeTable($table, $emailColumn)
+    protected function _anonymizeTable($table, $emailColumn, $salt)
     {
         $resource = \Mage::getSingleton('core/resource');
         $connection = $resource->getConnection('core_write');
 
         $tableName = $resource->getTableName($table);
+
         $query = "update $tableName set $emailColumn = " .
                  "concat('test+',SUBSTRING(MD5(CONCAT($emailColumn,'$salt')) FROM 1 FOR 10),'@example.com') " .
-                 "where $emailColumn not like 'test+%;'";
+                 "where $emailColumn not like 'test+%@example.com'";
 
         $connection->query($query);
 
